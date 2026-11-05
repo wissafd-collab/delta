@@ -53,12 +53,9 @@ h4{margin:18px 0 8px;font-size:16px;border-left:3px solid var(--ac);padding-left
 <div id="app"></div><div class="nav" id="nav"></div><div id="sheet"></div><div id="dlg"></div><div id="toast"></div>
 <script>
 /* ============================================================
- * 配置：把下面两行引号里的内容替换成你自己的 Supabase 信息
- *   SUPABASE_URL      形如 https://xxxx.supabase.co
- *   SUPABASE_ANON_KEY 填 publishable 公钥（sb_publishable_ 开头）或 anon 公钥
- * 绝对不要填 service_role / secret 密钥。
+ * Supabase 配置（只能放公开的 publishable 公钥，绝不能放 secret / service_role 密钥）
  *
- * 数据库字段对应（与已创建的 SQL 一致）：
+ * 数据库字段对应：
  *  accounts: id, owner, status(pending/online/offline/sold/rejected), rec, title, price, type(出售/出租/出币),
  *            server, level, rank, images(text[] 图片公开地址), data(jsonb), created_at
  *  accounts.data 键: total总资产, coin哈夫币, aw, skin人物皮肤, knife刀皮, gun枪皮数量, armor6六头六甲,
@@ -67,15 +64,17 @@ h4{margin:18px 0 8px;font-size:16px;border-left:3px solid var(--ac);padding-left
  *  tx: id, account_id, title, price, created_at（账号改为已售出时由数据库自动写入）
  *  settings: k, v, is_public（k='kf' 为客服联系方式）    admins: uid
  *  Storage 桶 pics，图片路径：用户UUID/文件名.jpg
- * 本页面全部使用相对路径，无路由，可直接部署在 GitHub Pages 子路径。
+ * 页面没有路由，全部使用相对路径，可直接部署在 GitHub Pages 子路径。
  * ============================================================ */
-const SUPABASE_URL='https://zoamifvdethlfdqtpwxv.supabase.co',SUPABASE_ANON_KEY='sb_publishable_请在这里粘贴你的公钥';
+const SUPABASE_URL='https://zoamifvdethlfdqtpwxv.supabase.co',SUPABASE_ANON_KEY='sb_publishable_Kn6O0DiyDAI5PvRhc5gWFQ_rY3zQLuY';
 const ST={pending:'待审核',online:'已上架',offline:'已下架',sold:'已售出',rejected:'已拒绝'};
 const TY=['出售','出租','出币'],SV=['安卓QQ','安卓微信','iOS QQ','iOS 微信'];
 const DK=['total','coin','aw','skin','knife','gun','armor6','ins','stamina','load','guns','remark'];
 const PB=/^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/pics\//;
-let sb=null,CFG=/^https:\/\/.+\.supabase\.co/.test(SUPABASE_URL)&&SUPABASE_ANON_KEY!='SUPABASE_ANON_KEY';
-if(CFG){try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(x){}}
+let sb=null;
+function mk(){try{if(window.supabase)sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(x){}}
+function loadLib(){return new Promise(r=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';s.onload=r;s.onerror=r;document.head.appendChild(s)})}
+mk();
 let ME=null,AD=false,ALL=[],TX=[],KF='',LD=true,ERR='',V='home',AT='acc',AF='all',MF='all',Q={q:'',t:'全部',s:'全部',o:'new',min:'',max:''},tmp=[],DC=null,RT=null,RTT=0,BUSY=false;
 const $=s=>document.querySelector(s);
 const e=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -96,15 +95,16 @@ function soft(){if(V=='home')hl();else if(V=='admin'&&(!AD||AT=='data'))return;e
 
 /* ===== 云端数据 ===== */
 async function loadAll(){
- const r=await sb.from('accounts').select('*,account_private(contact,remark)').order('created_at',{ascending:false});
+ let r=await sb.from('accounts').select('*,account_private(contact,remark)').order('created_at',{ascending:false});
+ if(r.error)r=await sb.from('accounts').select('*').order('created_at',{ascending:false});
  if(r.error)throw r.error;ALL=r.data.map(norm);
  const k=await sb.from('settings').select('v').eq('k','kf').maybeSingle();KF=k.data?k.data.v:'';
  if(AD){const t=await sb.from('tx').select('*').order('created_at',{ascending:false});TX=t.data||[]}}
 async function ref(){try{await loadAll()}catch(x){toast('刷新失败：'+x.message)}}
 async function manual(){LD=true;hl();await ref();LD=false;soft();toast('已刷新')}
 async function boot(){
- if(!CFG){ERR='尚未配置：请把 index.html 里的 SUPABASE_URL 和 SUPABASE_ANON_KEY 替换成你自己的值';LD=false;return render()}
- if(!sb){ERR='Supabase 组件没加载出来，请检查网络后刷新';LD=false;return render()}
+ if(!sb){await loadLib();mk()}
+ if(!sb){ERR='Supabase 组件没加载出来，请检查网络后刷新页面';LD=false;return render()}
  try{
   let s=(await sb.auth.getSession()).data.session;
   if(!s){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;s=r.data.session}
@@ -130,8 +130,8 @@ if(Q.t!='全部')l=l.filter(a=>a.type==Q.t);if(Q.s!='全部')l=l.filter(a=>a.ser
 if(mn>=0)l=l.filter(a=>a.price>=mn);if(mx>=0)l=l.filter(a=>a.price<=mx);
 if(q)l=l.filter(a=>[a.title,a.server,a.rank].join(' ').toLowerCase().includes(q));
 l.sort((a,b)=>Q.o=='lo'?a.price-b.price:Q.o=='hi'?b.price-a.price:new Date(b.ctime)-new Date(a.ctime));
-let h='';const rec=l.filter(a=>a.rec);
-if(!flt&&rec.length)h+=`<h4>推荐账号</h4><div class="hs">${rec.map(card).join('')}</div>`;
+let h='';const rc=l.filter(a=>a.rec);
+if(!flt&&rc.length)h+=`<h4>推荐账号</h4><div class="hs">${rc.map(card).join('')}</div>`;
 h+=`<h4>${flt?'搜索结果 ('+l.length+')':'最新账号'}</h4>`+(l.length?l.map(card).join(''):'<div class="em">暂时没有符合条件的账号</div>');
 box.innerHTML=h}
 function detail(id){const a=find(id);if(!a)return;
@@ -147,7 +147,7 @@ function kf(){dlg('联系客服',`<p>${e(KF||'管理员还没有设置客服联�
 const G=[['基础信息',[['title','账号标题','t'],['level','账号等级','n'],['rank','账号段位','t'],['server','区服','s',SV],['type','类型','s',TY],['price','价格（元）','n']]],
 ['资产信息',[['total','总资产数量','t'],['coin','哈夫币数量','t'],['aw','AW 数量','n'],['skin','人物皮肤数量','n'],['knife','刀皮数量','n'],['gun','枪皮数量','n'],['armor6','六头六甲数量','n'],['ins','保险配置','t'],['stamina','体力','t'],['load','负重','t']]],
 ['其他信息',[['guns','枪皮详细清单（每行一个）','a'],['remark','备注（公开显示）','a'],['contact','你的联系方式（仅管理员可见）','t']]]];
-const fld=(k,l,t,o,v)=>`<label class="f"><span>${l}</span>`+(t=='s'?`<select id="f_${k}">${o.map(x=>`<option${x==v?' selected':''}>${x}</option>`).join('')}</select>`:t=='a'?`<textarea id="f_${k}" rows="3">${e(v)}</textarea>`:`<input id="f_${k}" ${t=='n'?'inputmode="decimal"':''} value="${e(v)}">`)+'</label>';
+const fld=(k,l,t,o,v)=>`<label class="f"><span>${l}</span>`+(t=='s'?`<select id="f_${k}">${o.map(x=>`<option${x==v?' selected':''}>${x}</option>`).join('')}</select>`:t=='a'?`<textarea id="f_${k}" rows="3" maxlength="2000">${e(v)}</textarea>`:`<input id="f_${k}" maxlength="80" ${t=='n'?'inputmode="decimal"':''} value="${e(v)}">`)+'</label>';
 function openForm(id){const a=id?find(id):{};tmp=[...(a.imgs||[])];
 sheet(`<h3>${id?'编辑账号':'发布账号'}</h3><div class="wr">请勿填写游戏账号密码、验证码、身份证等实名信息，也不要写进备注或图片里。</div>`+G.map(([t,fs])=>`<div class="gt">${t}</div>`+fs.map(f=>fld(f[0],f[1],f[2],f[3],a[f[0]]==null?'':a[f[0]])).join('')).join('')+`<div class="gt">账号图片（最多 4 张）</div><div class="th" id="th"></div><input type="file" id="imgin" accept="image/*" multiple><button class="btn" onclick="submitForm('${id||''}')">${id?'保存修改':'提交审核'}</button>`);
 if(id&&!AD)$('#f_price').disabled=true;
@@ -156,18 +156,19 @@ function thumbs(){$('#th').innerHTML=tmp.map((d,i)=>`<div style="background-imag
 function comp(file){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.7))};im.onerror=()=>r(null);im.src=fr.result};fr.onerror=()=>r(null);fr.readAsDataURL(file)})}
 async function submitForm(id){if(BUSY)return;const o={};G.forEach(([t,fs])=>fs.forEach(f=>o[f[0]]=$('#f_'+f[0]).value.trim()));
 if(!o.title)return toast('请填写账号标题');if(!(parseFloat(o.price)>0))return toast('请填写正确的价格');if(!o.contact)return toast('请填写联系方式');
-if(!ME)return toast('还没连上云端，请刷新页面后重试');
+if(!ME||!sb)return toast('还没连上云端，请刷新页面后重试');
 BUSY=true;toast('正在提交，请稍等…');
 try{const imgs=[];
  for(const d of tmp){if(d.startsWith('data:')){const b=await(await fetch(d)).blob(),p=ME+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'.jpg';
   const u=await sb.storage.from('pics').upload(p,b,{contentType:'image/jpeg'});if(u.error)throw u.error;imgs.push(sb.storage.from('pics').getPublicUrl(p).data.publicUrl)}else imgs.push(d)}
  const data={};DK.forEach(k=>data[k]=o[k]);
- const row={title:o.title,price:parseFloat(o.price),type:o.type,server:o.server,level:o.level,rank:o.rank,images:imgs,data};
+ const row={title:o.title.slice(0,80),price:parseFloat(o.price),type:o.type,server:o.server.slice(0,30),level:o.level.slice(0,20),rank:o.rank.slice(0,30),images:imgs,data};
+ const ct=o.contact.slice(0,100);
  if(id){const a=find(id);if(!AD){row.price=a.price;row.status='pending'}
   const u=await sb.from('accounts').update(row).eq('id',id).select('id');if(u.error)throw u.error;if(!u.data.length)throw new Error('没有修改权限');
-  const p=await sb.from('account_private').upsert({account_id:id,owner:a.owner,contact:o.contact});if(p.error)throw p.error;
+  const p=await sb.from('account_private').upsert({account_id:id,owner:a.owner,contact:ct});if(p.error)throw p.error;
  }else{const r=await sb.from('accounts').insert(row).select('id').single();if(r.error)throw r.error;
-  const p=await sb.from('account_private').insert({account_id:r.data.id,contact:o.contact});if(p.error)throw p.error}
+  const p=await sb.from('account_private').insert({account_id:r.data.id,contact:ct});if(p.error)throw p.error}
  await ref();cs();if(id){toast('已保存');render()}else{toast('提交成功，等待管理员审核');MF='pending';go('mine')}
 }catch(x){toast('提交失败：'+(x.message||x))}
 BUSY=false}
@@ -178,7 +179,7 @@ return `<div class="hd"><span class="logo">我的账号</span></div><div class="
 (f.length?f.map(a=>`<div class="cd"><div class="ci"><div class="tt">${e(a.title)}<span class="st ${a.status}">${ST[a.status]}</span></div><div class="pr">¥${e(a.price)}</div><small>提交于 ${fmt(a.ctime)}</small><div class="ac"><button class="sm" onclick="detail('${a.id}')">查看</button>${a.status=='pending'||a.status=='rejected'?`<button class="sm g" onclick="openForm('${a.id}')">修改并重新提交</button>`:''}</div></div></div>`).join(''):'<div class="em">这里还没有账号<br>点击下方 ＋ 发布你的第一个账号<br><small>清除浏览器数据或换手机后，将看不到之前的提交</small></div>')}
 
 /* ===== 管理后台（权限由数据库 RLS 控制，按钮只是界面） ===== */
-async function login(){const em=$('#em').value.trim(),pw=$('#pw').value;if(!em||!pw)return toast('请输入邮箱和密码');
+async function login(){if(!sb)return toast('云端还没连上');const em=$('#em').value.trim(),pw=$('#pw').value;if(!em||!pw)return toast('请输入邮箱和密码');
 const r=await sb.auth.signInWithPassword({email:em,password:pw});if(r.error)return toast('登录失败：'+r.error.message);
 if((await sb.rpc('is_admin')).data!==true){await sb.auth.signOut();const g=await sb.auth.signInAnonymously();ME=g.data.session?g.data.session.user.id:null;return toast('这个账号不是管理员')}
 ME=r.data.user.id;AD=true;await ref();subRT();render()}
@@ -212,5 +213,5 @@ async function addAccs(list){let n=0;for(const a of list){const d=Object.assign(
  await ref();render();return n}
 async function imp(){let d;try{d=JSON.parse($('#imp').value);if(!d||!Array.isArray(d.accs))throw 0}catch(x){return toast('数据格式不对，请完整复制 JSON')}
 dlg('导入数据',`<p>将追加 ${d.accs.length} 个账号。只保留云端 pics 图片，其他图片会被丢弃。</p>`,'确定导入',async()=>{toast('导入中…');const n=await addAccs(d.accs);if(d.kf&&!KF)await sb.from('settings').upsert({k:'kf',v:d.kf,is_public:true});toast('已导入 '+n+' 个账号')})}
-boot();
+render();boot();
 </script></body></html>
