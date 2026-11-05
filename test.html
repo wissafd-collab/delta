@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>诊断</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<style>body{font:14px/1.6 -apple-system,sans-serif;padding:14px;background:#fff;color:#111}pre{white-space:pre-wrap;word-break:break-all;background:#f4f4f6;padding:8px;border-radius:8px}</style></head><body>
+<h3>连接诊断</h3><div id="o">运行中…</div>
+<script>
+const U='https://zoamifvdethlfdqtpwxv.supabase.co',K='sb_publishable_Kn6O0DiyDAI5PvRhc5gWFQ_rY3zQLuY';
+const o=document.getElementById('o');let n=0;
+const log=(ok,t,d)=>{o.innerHTML=(n++?o.innerHTML:'')+`<p>${ok?'✓':'✗'} ${t}${d?'<pre>'+String(d).replace(/[<&]/g,c=>c=='<'?'&lt;':'&amp;')+'</pre>':''}</p>`};
+const er=x=>{try{return (x&&x.name||'')+' | '+(x&&x.message||'')+' | status='+(x&&x.status||'')+' | '+(x&&x.code||'')}catch(_){return String(x)}};
+async function raw(path,opt){try{const r=await fetch(U+path,Object.assign({headers:{apikey:K}},opt));const t=await r.text();return [r.ok,r.status+' '+t.slice(0,300)]}catch(x){return [false,'fetch失败 '+er(x)]}}
+(async()=>{
+ o.innerHTML='';
+ log(!!window.supabase,'1 组件库已加载（supabase-js）');
+ let a=await raw('/auth/v1/health');log(a[0],'2 直接访问 Auth 服务',a[1]);
+ a=await raw('/auth/v1/signup',{method:'POST',headers:{apikey:K,'Content-Type':'application/json'},body:'{}'});log(a[0],'3 直接请求匿名登录',a[1]);
+ a=await raw('/rest/v1/settings?select=k,is_public');log(a[0],'4 直接读取 settings 表',a[1]);
+ if(!window.supabase)return;
+ let sb;try{sb=supabase.createClient(U,K);log(true,'5 创建 Supabase 客户端')}catch(x){return log(false,'5 创建客户端失败',er(x))}
+ try{const g=await sb.auth.getSession();log(!g.error,'6 读取本地登录状态',g.error?er(g.error):(g.data.session?'已有会话':'无会话'))}catch(x){log(false,'6 读取登录状态抛错',er(x)+'\n'+(x.stack||''))}
+ try{const r=await sb.auth.signInAnonymously();log(!r.error,'7 匿名登录',r.error?er(r.error):'成功')}catch(x){log(false,'7 匿名登录抛错',er(x)+'\n'+(x.stack||''))}
+ try{const r=await sb.rpc('is_admin');log(!r.error,'8 管理员检查函数',r.error?er(r.error):String(r.data))}catch(x){log(false,'8 抛错',er(x))}
+ try{const r=await sb.from('accounts').select('id').limit(1);log(!r.error,'9 读取 accounts 表',r.error?er(r.error):'成功，'+r.data.length+' 条')}catch(x){log(false,'9 抛错',er(x))}
+ log(true,'诊断结束，请把整页截图发给 Claude');
+})();
+</script></body></html>
