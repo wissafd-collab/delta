@@ -215,3 +215,19 @@ async function imp(){let d;try{d=JSON.parse($('#imp').value);if(!d||!Array.isArr
 dlg('导入数据',`<p>将追加 ${d.accs.length} 个账号。只保留云端 pics 图片，其他图片会被丢弃。</p>`,'确定导入',async()=>{toast('导入中…');const n=await addAccs(d.accs);if(d.kf&&!KF)await sb.from('settings').upsert({k:'kf',v:d.kf,is_public:true});toast('已导入 '+n+' 个账号')})}
 render();boot();
 </script></body></html>
+<script>
+/* 隐藏后台入口：只有用「网址#admin」打开过的设备才显示「后台」 */
+(function(){
+ let ok=false;try{ok=localStorage.getItem('showAdmin')=='1'}catch(x){}
+ if(location.hash=='#admin'){ok=true;try{localStorage.setItem('showAdmin','1')}catch(x){}}
+ if(location.hash=='#adminoff'){ok=false;try{localStorage.removeItem('showAdmin')}catch(x){}}
+ window.nav=function(){
+  const it=[['home','◆','首页'],['pub','＋','发布'],['mine','☰','我的']];
+  if(ok||AD)it.push(['admin','⚙','后台']);
+  $('#nav').innerHTML=it.map(([k,i,n])=>`<div class="${k=='pub'?'pub':''} ${V==k?'on':''}" onclick="${k=='pub'?'openForm()':`go('${k}')`}"><b>${i}</b>${n}</div>`).join('');
+ };
+ if(location.hash=='#admin')V='admin';
+ render();
+})();
+</script>
+
