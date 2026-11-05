@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>三角洲账号收号平台</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#f4f4f6;--cd:#fff;--ln:#e4e4e9;--t:#111;--m:#6b6b76;--ac:#6d28d9;--bad:#dc2626;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 -apple-system,"PingFang SC","Helvetica Neue",sans-serif}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+.w{padding:14px}.hd{display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px}
+.logo{font-size:21px;font-weight:800;border-left:4px solid var(--ac);padding-left:8px}
+small{color:var(--m);font-size:12px}
+input,select,textarea{width:100%;background:#fff;border:1px solid var(--ln);border-radius:10px;padding:11px 12px;color:var(--t);font:inherit;outline:none;margin-bottom:6px}
+input:focus,select:focus,textarea:focus{border-color:#111}input:disabled{opacity:.5}
+.btn{width:100%;border:0;border-radius:10px;padding:12px;color:#fff;font:600 15px inherit;background:#111;margin-top:10px}
+.sm{border:1px solid var(--ln);background:#fff;color:var(--t);border-radius:8px;padding:6px 10px;font:13px inherit}
+.sm.d{color:var(--bad);border-color:#fca5a5}.sm.g{background:#111;color:#fff;border-color:#111}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:10px 0}
+.chip{flex:none;padding:6px 14px;border-radius:20px;background:#fff;border:1px solid var(--ln);color:var(--m);font-size:13px}
+.chip.on{background:#111;color:#fff;border-color:#111}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+h4{margin:18px 0 8px;font-size:16px;border-left:3px solid var(--ac);padding-left:8px}
+.hs{display:flex;gap:10px;overflow-x:auto}.hs .cd{flex:none;width:70%}
+.cd{background:var(--cd);border:1px solid var(--ln);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.im{height:140px;background:linear-gradient(135deg,#e9e5f5,#f4f4f6) center/cover;display:flex;align-items:center;justify-content:center;font-size:34px;position:relative}
+.bd{position:absolute;top:8px;left:8px;background:#111;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px}
+.ci{padding:10px 12px}.tt{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg{margin:4px 0;display:flex;gap:6px;flex-wrap:wrap}.tg i{font-style:normal;font-size:11px;background:#f0edf9;color:#4c1d95;padding:1px 8px;border-radius:6px}
+.pr{color:var(--ac);font-weight:800;font-size:19px}
+.kv{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--m);margin-top:4px}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:#fff;border-top:1px solid var(--ln);padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+.nav div{flex:1;text-align:center;font-size:11px;color:var(--m)}.nav b{display:block;font-size:20px;font-weight:400}
+.nav .on{color:#111;font-weight:700}.nav .pub b{width:46px;height:46px;line-height:46px;margin:-18px auto 0;border-radius:50%;background:#111;color:#fff;font-size:26px;box-shadow:0 4px 14px #0004}
+#sheet{position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:40;display:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+#dlg{position:fixed;inset:0;background:#0007;z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+.db{background:#fff;border-radius:16px;padding:16px;width:100%;max-width:360px}.db h3{margin:0 0 10px}
+.db .r2{margin-top:8px}.db .btn{margin:0}.gh{background:#eee;border:0;border-radius:10px;color:#111;padding:12px;font:inherit}
+.f{display:block;margin:8px 0}.f span{display:block;font-size:13px;color:var(--m);margin-bottom:3px}
+.gt{margin:18px 0 4px;font-weight:700}
+.th{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}.th div{width:72px;height:72px;border-radius:10px;background:center/cover;position:relative}
+.th b{position:absolute;top:-6px;right:-6px;background:var(--bad);color:#fff;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;font-size:13px}
+.gal{display:flex;gap:8px;overflow-x:auto}.gal div{flex:none;width:80%;height:210px;border-radius:12px;background:center/cover}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.gr div{background:#fff;border:1px solid var(--ln);border-radius:10px;padding:8px 10px}.gr small{display:block}
+.pre{white-space:pre-wrap;background:#fff;border-radius:10px;padding:10px;border:1px solid var(--ln)}
+.st{font-size:11px;padding:1px 8px;border-radius:8px;margin-left:6px}
+.pending{background:#fef3c7;color:#92400e}.online{background:#dcfce7;color:#166534}.offline{background:#e5e7eb;color:#374151}.sold{background:#ede9fe;color:#5b21b6}.rejected{background:#fee2e2;color:#991b1b}
+.ac{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.ac select{width:auto;padding:6px;font-size:13px;border-radius:8px;margin:0}
+.wr{background:#fef3c7;border:1px solid #fcd34d;color:#92400e;border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:10px}
+.em{text-align:center;color:var(--m);padding:30px 0}
+#toast{position:fixed;left:50%;top:calc(20px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:#111;color:#fff;padding:9px 16px;border-radius:20px;z-index:80;display:none;font-size:14px;max-width:90%}
+</style></head><body>
+<div id="app"></div><div class="nav" id="nav"></div><div id="sheet"></div><div id="dlg"></div><div id="toast"></div>
+<script>
+/* ============================================================
+ * 配置：把下面两行引号里的内容替换成你自己的 Supabase 信息
+ *   SUPABASE_URL      形如 https://xxxx.supabase.co
+ *   SUPABASE_ANON_KEY 填 publishable 公钥（sb_publishable_ 开头）或 anon 公钥
+ * 绝对不要填 service_role / secret 密钥。
+ *
+ * 数据库字段对应（与已创建的 SQL 一致）：
+ *  accounts: id, owner, status(pending/online/offline/sold/rejected), rec, title, price, type(出售/出租/出币),
+ *            server, level, rank, images(text[] 图片公开地址), data(jsonb), created_at
+ *  accounts.data 键: total总资产, coin哈夫币, aw, skin人物皮肤, knife刀皮, gun枪皮数量, armor6六头六甲,
+ *                    ins保险, stamina体力, load负重, guns枪皮清单, remark备注
+ *  account_private: account_id, owner, contact联系方式(仅本人和管理员可读), remark
+ *  tx: id, account_id, title, price, created_at（账号改为已售出时由数据库自动写入）
+ *  settings: k, v, is_public（k='kf' 为客服联系方式）    admins: uid
+ *  Storage 桶 pics，图片路径：用户UUID/文件名.jpg
+ * 本页面全部使用相对路径，无路由，可直接部署在 GitHub Pages 子路径。
+ * ============================================================ */
+const SUPABASE_URL='https://zoamifvdethlfdqtpwxv.supabase.co',SUPABASE_ANON_KEY='sb_publishable_请在这里粘贴你的公钥';
+const ST={pending:'待审核',online:'已上架',offline:'已下架',sold:'已售出',rejected:'已拒绝'};
+const TY=['出售','出租','出币'],SV=['安卓QQ','安卓微信','iOS QQ','iOS 微信'];
+const DK=['total','coin','aw','skin','knife','gun','armor6','ins','stamina','load','guns','remark'];
+const PB=/^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/pics\//;
+let sb=null,CFG=/^https:\/\/.+\.supabase\.co/.test(SUPABASE_URL)&&SUPABASE_ANON_KEY!='SUPABASE_ANON_KEY';
+if(CFG){try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY)}catch(x){}}
+let ME=null,AD=false,ALL=[],TX=[],KF='',LD=true,ERR='',V='home',AT='acc',AF='all',MF='all',Q={q:'',t:'全部',s:'全部',o:'new',min:'',max:''},tmp=[],DC=null,RT=null,RTT=0,BUSY=false;
+const $=s=>document.querySelector(s);
+const e=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const p2=n=>String(n).padStart(2,'0');
+const fmt=t=>{const d=new Date(t);return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+' '+p2(d.getHours())+':'+p2(d.getMinutes())};
+const norm=r=>{const p=Array.isArray(r.account_private)?r.account_private[0]:r.account_private;return Object.assign({},r.data,{id:r.id,owner:r.owner,status:r.status,rec:r.rec,title:r.title,price:Number(r.price),type:r.type,server:r.server,level:r.level,rank:r.rank,imgs:r.images||[],ctime:r.created_at,contact:p?p.contact:''})};
+const find=id=>ALL.find(a=>a.id==id);
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3000)}
+function cp(t){const f=()=>{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();try{document.execCommand('copy');toast('已复制')}catch(_){toast('请长按手动复制')}x.remove()};try{navigator.clipboard.writeText(t).then(()=>toast('已复制'),f)}catch(_){f()}}
+function dlg(t,b,ok,cb){DC=cb;$('#dlg').innerHTML=`<div class="db"><h3>${t}</h3>${b}<div class="r2"><button class="gh" onclick="dx()">取消</button><button class="btn" onclick="const c=DC;dx();c&&c()">${ok}</button></div></div>`;$('#dlg').style.display='flex'}
+function dx(){$('#dlg').style.display='none'}
+function sheet(h){const s=$('#sheet');s.innerHTML=`<div class="w"><button class="sm" onclick="cs()">‹ 返回</button>${h}</div>`;s.style.display='block';s.scrollTop=0}
+function cs(){$('#sheet').style.display='none'}
+function go(v){V=v;cs();render();scrollTo(0,0)}
+function nav(){$('#nav').innerHTML=[['home','◆','首页'],['pub','＋','发布'],['mine','☰','我的'],['admin','⚙','后台']].map(([k,i,n])=>`<div class="${k=='pub'?'pub':''} ${V==k?'on':''}" onclick="${k=='pub'?'openForm()':`go('${k}')`}"><b>${i}</b>${n}</div>`).join('')}
+function render(){$('#app').innerHTML='<div class="w">'+({home,mine,admin}[V])()+'</div>';nav();if(V=='home')hl()}
+function soft(){if(V=='home')hl();else if(V=='admin'&&(!AD||AT=='data'))return;else render()}
+
+/* ===== 云端数据 ===== */
+async function loadAll(){
+ const r=await sb.from('accounts').select('*,account_private(contact,remark)').order('created_at',{ascending:false});
+ if(r.error)throw r.error;ALL=r.data.map(norm);
+ const k=await sb.from('settings').select('v').eq('k','kf').maybeSingle();KF=k.data?k.data.v:'';
+ if(AD){const t=await sb.from('tx').select('*').order('created_at',{ascending:false});TX=t.data||[]}}
+async function ref(){try{await loadAll()}catch(x){toast('刷新失败：'+x.message)}}
+async function manual(){LD=true;hl();await ref();LD=false;soft();toast('已刷新')}
+async function boot(){
+ if(!CFG){ERR='尚未配置：请把 index.html 里的 SUPABASE_URL 和 SUPABASE_ANON_KEY 替换成你自己的值';LD=false;return render()}
+ if(!sb){ERR='Supabase 组件没加载出来，请检查网络后刷新';LD=false;return render()}
+ try{
+  let s=(await sb.auth.getSession()).data.session;
+  if(!s){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;s=r.data.session}
+  ME=s.user.id;AD=(await sb.rpc('is_admin')).data===true;
+ }catch(x){ERR='登录云端失败：'+(x.message||x)}
+ try{await loadAll()}catch(x){ERR=ERR||'读取数据失败：'+x.message}
+ LD=false;subRT();render()}
+function subRT(){if(RT||!AD||!sb)return;RT=sb.channel('acc').on('postgres_changes',{event:'*',schema:'public',table:'accounts'},()=>{clearTimeout(RTT);RTT=setTimeout(async()=>{await ref();soft()},600)}).subscribe()}
+setInterval(async()=>{if(LD||!sb)return;await ref();soft()},20000);
+
+/* ===== 首页 ===== */
+const card=a=>`<div class="cd" onclick="detail('${a.id}')"><div class="im" style="${a.imgs[0]?'background-image:url('+a.imgs[0]+')':''}">${a.imgs[0]?'':'🎮'}${a.rec?'<span class="bd">推荐</span>':''}</div><div class="ci"><div class="tt">${e(a.title)}</div><div class="tg"><i>${e(a.type)}</i><i>${e(a.server)}</i><i>${e(a.rank||'-')}</i><i>Lv.${e(a.level||'-')}</i></div><div class="pr">¥${e(a.price)}</div><div class="kv"><span>总资产 ${e(a.total||'-')}</span><span>哈夫币 ${e(a.coin||'-')}</span><span>AW ${e(a.aw||'-')}</span><span>人物皮肤 ${e(a.skin||0)}</span><span>刀皮 ${e(a.knife||0)}</span></div></div></div>`;
+function home(){const opt=(a,v)=>a.map(x=>`<option value="${x[0]}"${x[0]==v?' selected':''}>${x[1]}</option>`).join('');
+return `<div class="hd"><span class="logo">三角洲收号</span><button class="sm" onclick="manual()">刷新</button></div>${ERR?`<div class="wr">${e(ERR)}</div>`:''}
+<input placeholder="🔍 搜索标题 / 区服 / 段位" value="${e(Q.q)}" oninput="Q.q=this.value;hl()">
+<div class="chips">${['全部',...TY].map(t=>`<span class="chip ${Q.t==t?'on':''}" onclick="Q.t='${t}';render()">${t=='全部'?'全部':t+'账号'}</span>`).join('')}</div>
+<div class="r2"><select onchange="Q.s=this.value;hl()">${opt([['全部','全部区服'],...SV.map(x=>[x,x])],Q.s)}</select>
+<select onchange="Q.o=this.value;hl()">${opt([['new','最新发布'],['lo','价格从低到高'],['hi','价格从高到低']],Q.o)}</select></div>
+<div class="r2"><input inputmode="decimal" placeholder="最低价" value="${e(Q.min)}" oninput="Q.min=this.value;hl()"><input inputmode="decimal" placeholder="最高价" value="${e(Q.max)}" oninput="Q.max=this.value;hl()"></div><div id="hl"></div>`}
+function hl(){const box=$('#hl');if(!box)return;if(LD){box.innerHTML='<div class="em">加载中…</div>';return}
+let l=ALL.filter(a=>a.status=='online');const q=Q.q.trim().toLowerCase(),mn=parseFloat(Q.min),mx=parseFloat(Q.max),flt=q||Q.t!='全部'||Q.s!='全部'||Q.min||Q.max;
+if(Q.t!='全部')l=l.filter(a=>a.type==Q.t);if(Q.s!='全部')l=l.filter(a=>a.server==Q.s);
+if(mn>=0)l=l.filter(a=>a.price>=mn);if(mx>=0)l=l.filter(a=>a.price<=mx);
+if(q)l=l.filter(a=>[a.title,a.server,a.rank].join(' ').toLowerCase().includes(q));
+l.sort((a,b)=>Q.o=='lo'?a.price-b.price:Q.o=='hi'?b.price-a.price:new Date(b.ctime)-new Date(a.ctime));
+let h='';const rec=l.filter(a=>a.rec);
+if(!flt&&rec.length)h+=`<h4>推荐账号</h4><div class="hs">${rec.map(card).join('')}</div>`;
+h+=`<h4>${flt?'搜索结果 ('+l.length+')':'最新账号'}</h4>`+(l.length?l.map(card).join(''):'<div class="em">暂时没有符合条件的账号</div>');
+box.innerHTML=h}
+function detail(id){const a=find(id);if(!a)return;
+const g=[['等级',a.level],['段位',a.rank],['区服',a.server],['类型',a.type],['总资产',a.total],['哈夫币',a.coin],['AW',a.aw],['人物皮肤',a.skin],['刀皮',a.knife],['枪皮数量',a.gun],['六头六甲',a.armor6],['保险',a.ins],['体力',a.stamina],['负重',a.load]];
+sheet(`${a.imgs.length?`<div class="gal" style="margin-top:10px">${a.imgs.map(i=>`<div style="background-image:url(${i})"></div>`).join('')}</div>`:''}
+<h3 style="margin:12px 0 2px">${e(a.title)}<span class="st ${a.status}">${ST[a.status]}</span></h3><div class="pr" style="font-size:26px">¥${e(a.price)}</div><small>提交时间：${fmt(a.ctime)}</small>
+<div class="gr">${g.map(x=>`<div><small>${x[0]}</small>${e(x[1]||'-')}</div>`).join('')}</div>
+<div class="gt">枪皮清单</div><div class="pre">${e(a.guns||'暂无')}</div><div class="gt">备注</div><div class="pre">${e(a.remark||'暂无')}</div>
+<button class="btn" onclick="kf()">联系客服</button>`)}
+function kf(){dlg('联系客服',`<p>${e(KF||'管理员还没有设置客服联系方式')}</p><small>复制后到微信或 QQ 添加好友，并告诉客服账号标题。</small>`,'复制联系方式',()=>cp(KF))}
+
+/* ===== 发布 / 编辑 ===== */
+const G=[['基础信息',[['title','账号标题','t'],['level','账号等级','n'],['rank','账号段位','t'],['server','区服','s',SV],['type','类型','s',TY],['price','价格（元）','n']]],
+['资产信息',[['total','总资产数量','t'],['coin','哈夫币数量','t'],['aw','AW 数量','n'],['skin','人物皮肤数量','n'],['knife','刀皮数量','n'],['gun','枪皮数量','n'],['armor6','六头六甲数量','n'],['ins','保险配置','t'],['stamina','体力','t'],['load','负重','t']]],
+['其他信息',[['guns','枪皮详细清单（每行一个）','a'],['remark','备注（公开显示）','a'],['contact','你的联系方式（仅管理员可见）','t']]]];
+const fld=(k,l,t,o,v)=>`<label class="f"><span>${l}</span>`+(t=='s'?`<select id="f_${k}">${o.map(x=>`<option${x==v?' selected':''}>${x}</option>`).join('')}</select>`:t=='a'?`<textarea id="f_${k}" rows="3">${e(v)}</textarea>`:`<input id="f_${k}" ${t=='n'?'inputmode="decimal"':''} value="${e(v)}">`)+'</label>';
+function openForm(id){const a=id?find(id):{};tmp=[...(a.imgs||[])];
+sheet(`<h3>${id?'编辑账号':'发布账号'}</h3><div class="wr">请勿填写游戏账号密码、验证码、身份证等实名信息，也不要写进备注或图片里。</div>`+G.map(([t,fs])=>`<div class="gt">${t}</div>`+fs.map(f=>fld(f[0],f[1],f[2],f[3],a[f[0]]==null?'':a[f[0]])).join('')).join('')+`<div class="gt">账号图片（最多 4 张）</div><div class="th" id="th"></div><input type="file" id="imgin" accept="image/*" multiple><button class="btn" onclick="submitForm('${id||''}')">${id?'保存修改':'提交审核'}</button>`);
+if(id&&!AD)$('#f_price').disabled=true;
+thumbs();$('#imgin').onchange=async ev=>{for(const f of ev.target.files){if(tmp.length>=4)break;const d=await comp(f);if(d)tmp.push(d)}ev.target.value='';thumbs()}}
+function thumbs(){$('#th').innerHTML=tmp.map((d,i)=>`<div style="background-image:url(${d})"><b onclick="tmp.splice(${i},1);thumbs()">×</b></div>`).join('')}
+function comp(file){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.7))};im.onerror=()=>r(null);im.src=fr.result};fr.onerror=()=>r(null);fr.readAsDataURL(file)})}
+async function submitForm(id){if(BUSY)return;const o={};G.forEach(([t,fs])=>fs.forEach(f=>o[f[0]]=$('#f_'+f[0]).value.trim()));
+if(!o.title)return toast('请填写账号标题');if(!(parseFloat(o.price)>0))return toast('请填写正确的价格');if(!o.contact)return toast('请填写联系方式');
+if(!ME)return toast('还没连上云端，请刷新页面后重试');
+BUSY=true;toast('正在提交，请稍等…');
+try{const imgs=[];
+ for(const d of tmp){if(d.startsWith('data:')){const b=await(await fetch(d)).blob(),p=ME+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'.jpg';
+  const u=await sb.storage.from('pics').upload(p,b,{contentType:'image/jpeg'});if(u.error)throw u.error;imgs.push(sb.storage.from('pics').getPublicUrl(p).data.publicUrl)}else imgs.push(d)}
+ const data={};DK.forEach(k=>data[k]=o[k]);
+ const row={title:o.title,price:parseFloat(o.price),type:o.type,server:o.server,level:o.level,rank:o.rank,images:imgs,data};
+ if(id){const a=find(id);if(!AD){row.price=a.price;row.status='pending'}
+  const u=await sb.from('accounts').update(row).eq('id',id).select('id');if(u.error)throw u.error;if(!u.data.length)throw new Error('没有修改权限');
+  const p=await sb.from('account_private').upsert({account_id:id,owner:a.owner,contact:o.contact});if(p.error)throw p.error;
+ }else{const r=await sb.from('accounts').insert(row).select('id').single();if(r.error)throw r.error;
+  const p=await sb.from('account_private').insert({account_id:r.data.id,contact:o.contact});if(p.error)throw p.error}
+ await ref();cs();if(id){toast('已保存');render()}else{toast('提交成功，等待管理员审核');MF='pending';go('mine')}
+}catch(x){toast('提交失败：'+(x.message||x))}
+BUSY=false}
+
+/* ===== 我的账号 ===== */
+function mine(){const l=ALL.filter(a=>a.owner==ME),c=k=>k=='all'?l.length:l.filter(a=>a.status==k).length,f=MF=='all'?l:l.filter(a=>a.status==MF);
+return `<div class="hd"><span class="logo">我的账号</span></div><div class="chips">${['all',...Object.keys(ST)].map(k=>`<span class="chip ${MF==k?'on':''}" onclick="MF='${k}';render()">${k=='all'?'全部':ST[k]} ${c(k)}</span>`).join('')}</div>`+
+(f.length?f.map(a=>`<div class="cd"><div class="ci"><div class="tt">${e(a.title)}<span class="st ${a.status}">${ST[a.status]}</span></div><div class="pr">¥${e(a.price)}</div><small>提交于 ${fmt(a.ctime)}</small><div class="ac"><button class="sm" onclick="detail('${a.id}')">查看</button>${a.status=='pending'||a.status=='rejected'?`<button class="sm g" onclick="openForm('${a.id}')">修改并重新提交</button>`:''}</div></div></div>`).join(''):'<div class="em">这里还没有账号<br>点击下方 ＋ 发布你的第一个账号<br><small>清除浏览器数据或换手机后，将看不到之前的提交</small></div>')}
+
+/* ===== 管理后台（权限由数据库 RLS 控制，按钮只是界面） ===== */
+async function login(){const em=$('#em').value.trim(),pw=$('#pw').value;if(!em||!pw)return toast('请输入邮箱和密码');
+const r=await sb.auth.signInWithPassword({email:em,password:pw});if(r.error)return toast('登录失败：'+r.error.message);
+if((await sb.rpc('is_admin')).data!==true){await sb.auth.signOut();const g=await sb.auth.signInAnonymously();ME=g.data.session?g.data.session.user.id:null;return toast('这个账号不是管理员')}
+ME=r.data.user.id;AD=true;await ref();subRT();render()}
+async function logout(){await sb.auth.signOut();AD=false;TX=[];if(RT){sb.removeChannel(RT);RT=null}const g=await sb.auth.signInAnonymously();ME=g.data.session?g.data.session.user.id:null;await ref();render()}
+async function up(id,patch,msg){const r=await sb.from('accounts').update(patch).eq('id',id).select('id');if(r.error)return toast(r.error.message);if(!r.data.length)return toast('没有权限或账号不存在');toast(msg||'已更新');await ref();render()}
+const ss=(id,st)=>st&&up(id,{status:st},'状态：'+ST[st]);
+const rec=id=>up(id,{rec:!find(id).rec});
+function pr(id){const a=find(id);dlg('修改价格',`<input id="np" inputmode="decimal" value="${e(a.price)}">`,'保存',()=>{const v=parseFloat($('#np').value);if(!(v>0))return toast('价格不正确');up(id,{price:v},'价格已更新')})}
+function del(id){dlg('删除账号','<p>确定删除吗？账号和图片都会被删除，无法恢复。</p>','确定删除',async()=>{const a=find(id),r=await sb.from('accounts').delete().eq('id',id).select('id');
+if(r.error)return toast(r.error.message);if(!r.data.length)return toast('删除失败，没有权限');
+const ps=a.imgs.map(u=>u.split('/object/public/pics/')[1]).filter(Boolean);if(ps.length)sb.storage.from('pics').remove(ps);toast('已删除');await ref();render()})}
+function admin(){if(!AD)return `<div class="hd"><span class="logo">管理员后台</span></div><small>请使用在 Supabase 里创建的管理员邮箱登录。普通玩家无法进入。</small><input id="em" type="email" placeholder="管理员邮箱" style="margin-top:10px"><input id="pw" type="password" placeholder="密码"><button class="btn" onclick="login()">登录</button>`;
+const tabs=[['acc','账号'],['tx','交易记录'],['data','设置与数据']];
+let h=`<div class="hd"><span class="logo">管理后台</span><button class="sm" onclick="logout()">退出</button></div><div class="chips">${tabs.map(t=>`<span class="chip ${AT==t[0]?'on':''}" onclick="AT='${t[0]}';render()">${t[1]}</span>`).join('')}</div>`;
+if(AT=='acc'){const c=k=>k=='all'?ALL.length:ALL.filter(a=>a.status==k).length,l=AF=='all'?ALL:ALL.filter(a=>a.status==AF);
+h+=`<div class="chips">${['all',...Object.keys(ST)].map(k=>`<span class="chip ${AF==k?'on':''}" onclick="AF='${k}';render()">${k=='all'?'全部':ST[k]} ${c(k)}</span>`).join('')}</div>`+(l.length?l.map(a=>`<div class="cd"><div class="ci"><div class="tt">${e(a.title)}${a.rec?' ⭐':''}<span class="st ${a.status}">${ST[a.status]}</span></div><div class="pr">¥${e(a.price)}</div><small>${e(a.type)} · 提交 ${fmt(a.ctime)}<br>玩家联系方式：${e(a.contact||'-')}</small><div class="ac">
+${a.status=='pending'?`<button class="sm g" onclick="ss('${a.id}','online')">通过上架</button><button class="sm d" onclick="ss('${a.id}','rejected')">拒绝</button>`:''}
+${a.status=='online'?`<button class="sm" onclick="ss('${a.id}','offline')">下架</button>`:''}${a.status=='offline'?`<button class="sm g" onclick="ss('${a.id}','online')">上架</button>`:''}
+<button class="sm" onclick="pr('${a.id}')">改价</button><button class="sm" onclick="openForm('${a.id}')">编辑</button><button class="sm" onclick="rec('${a.id}')">${a.rec?'取消推荐':'设为推荐'}</button><button class="sm" onclick="detail('${a.id}')">查看</button>
+<select onchange="ss('${a.id}',this.value)"><option value="">改状态</option>${Object.keys(ST).map(k=>`<option value="${k}">${ST[k]}</option>`).join('')}</select><button class="sm d" onclick="del('${a.id}')">删除</button></div></div></div>`).join(''):'<div class="em">暂无账号</div>')}
+else if(AT=='tx'){h+=TX.length?TX.map(t=>`<div class="cd"><div class="ci"><div class="tt">${e(t.title)}</div><div class="pr">¥${e(t.price)}</div><small>成交时间 ${fmt(t.created_at)}</small></div></div>`).join(''):'<div class="em">暂无交易记录<br>把账号状态改为「已售出」会自动生成</div>'}
+else{h+=`<div class="gt">客服联系方式（玩家点「联系客服」看到的内容）</div><input id="kfi" value="${e(KF)}" placeholder="例如：微信 xxxx"><button class="btn" onclick="saveKf()">保存客服信息</button>
+<div class="gt">导出 JSON 备份（复制后粘贴到备忘录）</div><textarea id="exp" rows="5" readonly onfocus="this.select()">${e(JSON.stringify({kf:KF,tx:TX,accs:ALL.map(a=>{const{owner,...r}=a;return r})}))}</textarea><button class="btn" onclick="cp($('#exp').value)">复制全部数据</button>
+<div class="gt">导入 JSON 恢复数据（追加到现有账号，不会覆盖）</div><textarea id="imp" rows="4" placeholder="把备份的 JSON 粘贴到这里"></textarea><button class="btn" onclick="imp()">导入</button>`}
+return h}
+async function saveKf(){const r=await sb.from('settings').upsert({k:'kf',v:$('#kfi').value,is_public:true});if(r.error)return toast(r.error.message);toast('已保存');await ref()}
+async function addAccs(list){let n=0;for(const a of list){const d=Object.assign({},a.data);DK.forEach(k=>{if(a[k]!=null&&d[k]==null)d[k]=a[k]});if(a.desc&&!d.remark)d.remark=a.desc;
+ const r=await sb.from('accounts').insert({title:String(a.title||'未命名').slice(0,80),price:Number(a.price)||1,type:TY.includes(a.type)?a.type:'出售',server:String(a.server||'').slice(0,30),level:String(a.level||'').slice(0,20),rank:String(a.rank||'').slice(0,30),images:(a.imgs||a.images||[]).filter(u=>PB.test(u)).slice(0,4),data:d,status:ST[a.status]?a.status:'pending',rec:!!a.rec}).select('id').single();
+ if(r.error){toast('第 '+(n+1)+' 条失败：'+r.error.message);break}
+ if(a.contact)await sb.from('account_private').insert({account_id:r.data.id,contact:String(a.contact).slice(0,100)});n++}
+ await ref();render();return n}
+async function imp(){let d;try{d=JSON.parse($('#imp').value);if(!d||!Array.isArray(d.accs))throw 0}catch(x){return toast('数据格式不对，请完整复制 JSON')}
+dlg('导入数据',`<p>将追加 ${d.accs.length} 个账号。只保留云端 pics 图片，其他图片会被丢弃。</p>`,'确定导入',async()=>{toast('导入中…');const n=await addAccs(d.accs);if(d.kf&&!KF)await sb.from('settings').upsert({k:'kf',v:d.kf,is_public:true});toast('已导入 '+n+' 个账号')})}
+boot();
+</script></body></html>
