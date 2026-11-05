@@ -227,7 +227,35 @@ render();boot();
   $('#nav').innerHTML=it.map(([k,i,n])=>`<div class="${k=='pub'?'pub':''} ${V==k?'on':''}" onclick="${k=='pub'?'openForm()':`go('${k}')`}"><b>${i}</b>${n}</div>`).join('');
  };
  if(location.hash=='#admin')V='admin';
+ 
  render();
 })();
+</script>
+<script>
+/* 登录诊断：把每一步结果显示在密码框下面，15 秒还没反应会提示超时 */
+window.login=async function(){
+ let box=document.getElementById('lgst');
+ if(!box){box=document.createElement('div');box.id='lgst';box.style.cssText='margin-top:10px;font-size:13px;white-space:pre-wrap;word-break:break-all;color:#111';document.getElementById('pw').insertAdjacentElement('afterend',box)}
+ box.textContent='';const say=t=>{box.textContent+=t+'\n'};
+ const em=$('#em').value.trim(),pw=$('#pw').value;
+ if(!em||!pw)return say('请先输入邮箱和密码');
+ const T=(p,ms,n)=>Promise.race([p,new Promise((_,j)=>setTimeout(()=>j(new Error(n+'超时（'+ms/1000+'秒）')),ms))]);
+ try{
+  say('1 正在验证邮箱和密码…');
+  const r=await T(sb.auth.signInWithPassword({email:em,password:pw}),15000,'登录');
+  if(r.error)return say('✗ 登录失败：'+r.error.message+'（状态 '+r.error.status+'）');
+  say('✓ 邮箱和密码正确');
+  const a=await T(sb.rpc('is_admin'),10000,'管理员检查');
+  say('2 管理员检查结果：'+(a.error?a.error.message:a.data));
+  if(a.data!==true){
+   await sb.auth.signOut();const g=await sb.auth.signInAnonymously();ME=g.data.session?g.data.session.user.id:null;
+   return say('✗ 这个账号还不在管理员名单里');
+  }
+  ME=r.data.user.id;AD=true;
+  say('3 正在读取数据…');
+  await T(ref(),15000,'读取数据');
+  subRT();render();
+ }catch(x){say('✗ '+(x.message||x))}
+};
 </script>
 
